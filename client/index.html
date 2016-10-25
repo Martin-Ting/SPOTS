@@ -17,7 +17,65 @@
     </style>
   </head>
   <body>
+  <!-- <div id='App'></div> -->
+  <div id='navbar'> </div>
+  <div id='mapcontainer'>
+    <div id='map'></div>
+  </div>
+  <div id='mapdata'></div>
+  <div id='mainbody'>
+    <form>
+      Add a new SPOT
+      <table>
+        <tr>
+            <td>Title: </td>
+            <td><input name='' type='text'></td>
+        </tr>
+        <tr>
+            <td>Description: </td>
+            <td><input name='' type=''><br></td>
+        </tr>
+        <tr>
+            <td>Tags: </td>
+            <td><input name='' type=''></td>
+        </tr>
+        <tr> <td></td><td><input type="submit" value="Submit"></td></tr>
+      </table>
 
+    </form>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', mapboxtest, false);
+    function mapboxtest(){
+      "use strict";
+      mapboxgl.accessToken = 'pk.eyJ1IjoibWFydGluaHRpbmciLCJhIjoiY2l1b3d3bjNyMDFrNjJ0cnQxcXN6bjJ1YiJ9.sRgtyYz8lprgk0hDOEmNTA';
+      var map = new mapboxgl.Map({
+          container: 'map', // container id
+          style: 'mapbox://styles/mapbox/streets-v9', //stylesheet location
+          center: [-118.4246642, 33.9794474], // starting position
+          zoom: 12 // starting zoom
+      });
+      map.on('style.load', addData);
+      function addData(){
+        let dataBox = document.getElementById('mapdata');
+        let el = document.createElement('div');
+          el.addEventListener('click', function(){
+          window.alert("you clicked a marker!");
+        });
+        el.style = 'width: 35px; height:35px; background-image:url("http://www.clker.com/cliparts/k/Q/V/D/z/u/map-marker-small.svg");  background-size: cover;'
+        //let marker = new mapboxgl.Marker(el).setLngLat([-118.4246642, 33.9794474]).addTo(map);
+
+        console.log("adding marker");
+        var marker = new mapboxgl.Marker(el, {offset: [17,87]})
+        .setLngLat([-118.4246642, 33.9794474])
+        .addTo(map);
+        console.log(marker);
+        dataBox.appendChild(el);
+      }
+    }
+
+
+  </script>
   </body>
 </html>
 
