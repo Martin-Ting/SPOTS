@@ -7,44 +7,65 @@
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.26.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.26.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://code.jquery.com/jquery-3.1.1.min.js'></script>
+
      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
     <style>
-      body { margin:0; padding:0; }
-      #navbar {height:100px; background-color:red; width: 100%;}
-      #mapcontainer { position:relative; width:100%; height:500px;}
+      body { margin:0; padding:0; font-family:  "Lucida Grande", Tahoma, Geneva, sans-serif; background-color:#F7C7C6}
+
+      #companyspan{vertical-align: middle;}
+      #logoimage{height:30px; width:30px; border-radius:30px; margin-top:10px;}
+      #companyname{vertical-align:middle; float:left; height:100%; width: 200px; padding-left:10px; font-size:24px;}
+      #companynamespan{position:absolute; top:11px;margin-left:10px;}
+      #loginform{float:right; margin-top:10px;}
+      #navbar {height:50px; width: 100%; background-color:#FF4D4D;} 
+      #mapcontainer { position:relative; width:100%; height:350px; overflow:hidden;}
       #map {top:0; bottom:0; width:100%; height:100%}
-      #mainbody {position: absolute; top:600px; width: 100%; height:100px; padding-top:20px; padding-left:20px;}
+      .mapboxgl-popup{max-width:250px; max-height:300px; overflow:scroll;}
+      #mainbody {position: relative;  height:200px; margin: 10px; padding:10px; background-color:#4E52E8; border: 2px solid white;}
+      #formbody {position: relative;  height:200px; margin: 10px; padding:10px; background-color:#4E52E8;}
     </style>
   </head>
   <body>
   <!-- <div id='App'></div> -->
-  <div id='navbar'> </div>
+  <div id='navbar'>
+    <div id='companyname'><div id='companyspan'><img id='logoimage' src='https://s-media-cache-ak0.pinimg.com/236x/a2/33/d4/a233d48d551ad96369bb2908d23a2e79.jpg' /><span id="companynamespan"><b>SPOTS</b></span></div></div>
+
+    <div id='loginform'><form id='loginForm'><input style='width: 120px;' id='loginUsername' name='formusername' type='text' value='Username'> <input style='width: 120px;' id='loginPassword' name='formpassword' type='password' value='Password'><input style='margin-left:5px; margin-right:10px' type="submit" value="Submit"></form></div>
+  </div>
   <div id='mapcontainer'>
     <div id='map'></div>
+    <div id='mapdata'></div>
   </div>
-  <div id='mapdata'></div>
   <div id='mainbody'>
-    <form>
-      Add a new SPOT
-      <table>
-        <tr>
-            <td>Title: </td>
-            <td><input name='' type='text'></td>
-        </tr>
-        <tr>
-            <td>Description: </td>
-            <td><input name='' type=''><br></td>
-        </tr>
-        <tr>
-            <td>Tags: </td>
-            <td><input name='' type=''></td>
-        </tr>
-        <tr> <td></td><td><input type="submit" value="Submit"></td></tr>
-      </table>
-
-    </form>
+    <div id='markerdesc'>
+      <h1>Click on one of the markers to view the SPOT!</h1>
+      <p style='font-size:20px;'>To add a spot, double click on a location to drop a new marker and fill out a description of it to the right.</p>
+    </div>
+  </div><!-- mainbody -->
+  <div id='formbody'>
+  <form id='spotsform'>
+    Add a new SPOT
+    <table>
+      <tr>
+          <td>Title: </td>
+          <td><input style='width: 200px;' id='formTitle' name='formTitle' type='text'></td>
+      </tr>
+      <tr>
+          <td>Description: </td>
+          <td><textarea style='width: 200px; height: 40px;' id='formDesc' name='formdesc' type='text'></textarea><br></td>
+      </tr>
+      <tr>
+          <td>Tags: </td>
+          <td><input style='width: 200px;' id='formTags' name='formtags' type=''></td>
+      </tr>
+      <tr> <td></td><td><input type="submit" value="Submit"></td></tr>
+    </table>
+  </form>
   </div>
+  <div style='background-color:#525252; width:100%; height:250px;' />
   <script>
+
     document.addEventListener('DOMContentLoaded', mapboxtest, false);
     function mapboxtest(){
       "use strict";
@@ -53,27 +74,102 @@
           container: 'map', // container id
           style: 'mapbox://styles/mapbox/streets-v9', //stylesheet location
           center: [-118.4246642, 33.9794474], // starting position
-          zoom: 12 // starting zoom
+          zoom: 12// starting zoom
       });
+      map.scrollZoom.disable();
+      map.doubleClickZoom.disable();
       map.on('style.load', addData);
-      function addData(){
+      map.on('dblclick', (e)=>{
         let dataBox = document.getElementById('mapdata');
-        let el = document.createElement('div');
-          el.addEventListener('click', function(){
-          window.alert("you clicked a marker!");
+        let existingMarker = document.getElementById('tempMarker');
+        if(existingMarker){
+          console.log('deleting');
+          existingMarker.parentElement.removeChild(existingMarker);
+        }
+        existingMarker = document.createElement('div');
+        existingMarker.id = 'tempMarker';
+        existingMarker.style = 'width: 35px; height:35px; background-image:url("http://icons.iconarchive.com/icons/paomedia/small-n-flat/1024/map-marker-icon.png");  background-size: cover;';
+        let marker = new mapboxgl.Marker(existingMarker, {offset: [-17.5,-35]})//offset: [-(imgBorderSize/2), imgBorderSize*2]})//{offset: [17,87]})
+              .setLngLat(e.lngLat)
+              //.setPopup(popup)
+              .addTo(map);
+        dataBox.appendChild(existingMarker);
+        existingMarker.lat = e.lngLat.lat;
+        existingMarker.lng = e.lngLat.lng;
+        console.log(e.lngLat);
+      });
+      function addData(){
+        $.ajax({
+          url:"http://localhost:3000/spots/all"
+        }).done( spotsJson => {
+          let dataBox = document.getElementById('mapdata');
+          let descBox = document.getElementById('markerdesc');
+          spotsJson.forEach((spot)=>{
+            let el = document.createElement('div');
+            el.addEventListener('click', function(){
+              let createdDate = new Date(spot.createdAt).toLocaleString();
+              let spotTitle = spot.title;
+              let spotDescription = spot.description;
+              let spotDate = createdDate.split(',')[0];
+              let popupText ='<h1><b>' + spotTitle +'</b></h1><small>Added: ' + spotDate + '</small><br><br>'+ spotDescription;
+              descBox.innerHTML = popupText;
+            });
+            el.style = 'width: 35px; height:35px; background-image:url("http://www.clker.com/cliparts/k/Q/V/D/z/u/map-marker-small.svg");  background-size: cover;';
+            let imgBorderSize = 35;
+
+            //let popup = new mapboxgl.Popup({offset:[-30,-30]}).setText(popupText);
+            let marker = new mapboxgl.Marker(el, {offset: [-13.5,-28]})//offset: [-(imgBorderSize/2), imgBorderSize*2]})//{offset: [17,87]})
+              .setLngLat(spot.location.coordinates)
+              .addTo(map);
+            dataBox.appendChild(el);
+          });
         });
-        el.style = 'width: 35px; height:35px; background-image:url("http://www.clker.com/cliparts/k/Q/V/D/z/u/map-marker-small.svg");  background-size: cover;'
-        //let marker = new mapboxgl.Marker(el).setLngLat([-118.4246642, 33.9794474]).addTo(map);
-
-        console.log("adding marker");
-        var marker = new mapboxgl.Marker(el, {offset: [17,87]})
-        .setLngLat([-118.4246642, 33.9794474])
-        .addTo(map);
-        console.log(marker);
-        dataBox.appendChild(el);
       }
-    }
 
+
+      //================================================
+      let formSubmit = document.getElementById('spotsform');
+      formSubmit.addEventListener('submit', (event) => {
+        console.log("adding event listener");
+        event.preventDefault();
+        // collect the form data
+        // make a post request
+        // TODO clear the form
+        let formTitle = document.getElementById('formTitle');
+        let formDesc = document.getElementById('formDesc');
+        let formTags = document.getElementById('formTags');
+        let tempMarker = document.getElementById('tempMarker');
+        if(formTitle && formDesc && formTags && tempMarker){
+
+          let postObj = { description: formDesc.value,
+            title: formTitle.value,
+            formTags: formTags.value,
+            location: [tempMarker.lng, tempMarker.lat] };
+          console.log(postObj);
+          $.post('/spots/new', postObj).done(() => {
+            console.log('done');
+            formTitle.value = '';
+            formDesc.value = '';
+            formTags.value = '';
+            tempMarker.parentNode.removeChild(tempMarker);
+          });
+        }
+      });  //formSubmit.addEventListener
+      //======================================
+      let loginUsername = document.getElementById('loginUsername');
+      let loginPassword = document.getElementById('loginPassword');
+      loginUsername.addEventListener('click', (event)=>{
+        event.target.value='';
+      });
+      loginPassword.addEventListener('click', (event)=>{
+        event.target.value='';
+      });
+      let loginForm = document.getElementById('loginForm');
+      loginForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        
+      });
+    }//mapBoxTest
 
   </script>
   </body>

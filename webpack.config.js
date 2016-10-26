@@ -2,6 +2,11 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
+  devServer: {
+    proxy: {
+      '**': {target: 'http://localhost:3000', secure:false},
+    }
+  },
   // specifies the entry files
   // when provided with array it will go through all the files
   entry: [
